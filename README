@@ -2,3 +2,5 @@ smart-garden
 ============
 
 Automatic watering system for your garden or home plants
+
+The systems consists of Arduino-compatible AVR microcontroller connected to basic lcd and water pump.

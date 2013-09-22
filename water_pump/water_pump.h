@@ -16,7 +16,7 @@ template <class T> int EEPROM_writeAnything(int ee, const T& value)
     unsigned int i;
     for (i = 0; i < sizeof(value); i++)
           EEPROM.write(ee++, *p++);
-    return ee;
+    return i;
 }
 
 template <class T> int EEPROM_readAnything(int ee, T& value)
@@ -25,7 +25,7 @@ template <class T> int EEPROM_readAnything(int ee, T& value)
     unsigned int i;
     for (i = 0; i < sizeof(value); i++)
           *p++ = EEPROM.read(ee++);
-    return ee;
+    return i;
 }
 
 class SimpleBtn {
@@ -108,23 +108,23 @@ class Pump {
     }
     
     int save_settings(int ee) {
-      ee = EEPROM_writeAnything(ee, now());
-      ee = EEPROM_writeAnything(ee, _last_watering_time);
-      ee = EEPROM_writeAnything(ee, _last_watering_amount);
-      ee = EEPROM_writeAnything(ee, interval_days);
-      ee = EEPROM_writeAnything(ee, watering_amount);
+      ee += EEPROM_writeAnything(ee, now());
+      ee += EEPROM_writeAnything(ee, _last_watering_time);
+      ee += EEPROM_writeAnything(ee, _last_watering_amount);
+      ee += EEPROM_writeAnything(ee, interval_days);
+      ee += EEPROM_writeAnything(ee, watering_amount);
       
       return ee;
     }
     int load_settings(int ee) {
       time_t cur_time;
-      ee = EEPROM_readAnything(ee, cur_time);
+      ee += EEPROM_readAnything(ee, cur_time);
       if(cur_time > 0)
         setTime(cur_time);
-      ee = EEPROM_readAnything(ee, _last_watering_time);
-      ee = EEPROM_readAnything(ee, _last_watering_amount);
-      ee = EEPROM_readAnything(ee, interval_days);
-      ee = EEPROM_readAnything(ee, watering_amount);
+      ee += EEPROM_readAnything(ee, _last_watering_time);
+      ee += EEPROM_readAnything(ee, _last_watering_amount);
+      ee += EEPROM_readAnything(ee, interval_days);
+      ee += EEPROM_readAnything(ee, watering_amount);
       
       return ee;
     }

@@ -8,7 +8,6 @@
 #define PUMP_PIN 13
 #define BTN1_PIN 7
 #define BTN2_PIN 8
-#define LED1_PIN 9
 
 SimpleBtn btn1(BTN1_PIN);
 SimpleBtn btn2(BTN2_PIN);
@@ -40,8 +39,6 @@ void setup() {
   lcd.noAutoscroll();
   setup_display();
   
-  pinMode(LED1_PIN, OUTPUT);
-  
   pump.load_settings(A_PUMP_SETTINGS);
   last_save_time = now();
 }
@@ -56,15 +53,20 @@ void control_state_change() {
       break;
     case S_FREQ_CONTROL:
       main_state = S_AMOUNT_CONTROL;
+      if (btn1.was_pressed())
+        save();
+      
       break;
     case S_AMOUNT_CONTROL:
       main_state = S_WORK;
+      if (btn1.was_pressed())
+        save();
+        
       break;
   }
   btn1.reset();
   btn2.reset();
   setup_display();
-  digitalWrite(LED1_PIN, LOW);
 }
 
 void setup_display() {
@@ -92,20 +94,22 @@ void loop() {
   lcd.print(headers[0]);
   
   if (now() - last_save_time > SAVE_INTERVAL) {
-    int saved = pump.save_settings(A_PUMP_SETTINGS);
-    last_save_time = now();
-    
-    lcd.setCursor(0,1);
-    lcd.print("Saved...");
-    lcd.print(saved);
-    lcd.print(headers[0]);
-    delay(500);
-    pump.load_settings(A_PUMP_SETTINGS);
+    save();
   }
   
   delay(1);
 }
 
+void save() {
+  int saved = pump.save_settings(A_PUMP_SETTINGS);
+  last_save_time = now();
+
+  lcd.setCursor(0,1);
+  lcd.print("Saved...    ");
+
+  delay(500);
+  pump.load_settings(A_PUMP_SETTINGS);
+}
 
 void work() {
   time_t next_time = pump.next_watering_time();
@@ -132,12 +136,13 @@ void work() {
 
 void amount_control() {
   if (btn1.pressed())
-    digitalWrite(LED1_PIN, HIGH);
+    digitalWrite(PUMP_PIN, HIGH);
   else {
-    digitalWrite(LED1_PIN, LOW);
+    digitalWrite(PUMP_PIN, LOW);
   }
-  if (btn1.was_pressed())
+  if (btn1.was_pressed()) {
     pump.watering_amount = btn1.last_press_duration();
+  }
   
   lcd.print(int(pump.watering_amount/1000));
   lcd.print(".");

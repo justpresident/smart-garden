@@ -1,4 +1,5 @@
 #include <LiquidCrystal.h>
+#include <EEPROM.h>
 #include <Time.h>
 
 #include "water_pump.h"
@@ -15,6 +16,8 @@ Pump pump(PUMP_PIN);
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 //##################
+#define A_PUMP_SETTINGS 10
+#define SAVE_INTERVAL 3600
 // system state vars
 #define S_NONE 0
 #define S_WORK 1
@@ -22,13 +25,14 @@ LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 #define S_AMOUNT_CONTROL 3
 
 const char* headers[] = {
-  "",
+  "            ",
   "Next watering in:",
   "Frequency:",
   "Amount:"
 };
 
 byte main_state;
+time_t last_save_time;
 
 void setup() {
   main_state = S_WORK;
@@ -37,6 +41,9 @@ void setup() {
   setup_display();
   
   pinMode(LED1_PIN, OUTPUT);
+  
+  pump.load_settings(A_PUMP_SETTINGS);
+  last_save_time = now();
 }
 
 void control_state_change() {
@@ -82,7 +89,20 @@ void loop() {
       amount_control();
       break;
   }
-  lcd.print("            ");
+  lcd.print(headers[0]);
+  
+  if (now() - last_save_time > SAVE_INTERVAL) {
+    int saved = pump.save_settings(A_PUMP_SETTINGS);
+    last_save_time = now();
+    
+    lcd.setCursor(0,1);
+    lcd.print("Saved...");
+    lcd.print(saved);
+    lcd.print(headers[0]);
+    delay(500);
+    pump.load_settings(A_PUMP_SETTINGS);
+  }
+  
   delay(1);
 }
 
@@ -105,6 +125,7 @@ void work() {
   lcd.print(":");
   if (seconds < 10) lcd.print("0");
   lcd.print(seconds);
+
   pump.work();
 }
 
@@ -130,5 +151,9 @@ void freq_control() {
     if (pump.interval_days > 14)
       pump.interval_days = 1;
   }
+  lcd.print("Every ");
   lcd.print(pump.interval_days);
+  lcd.print(" day");
+  if(pump.interval_days > 1)
+    lcd.print("s");
 }

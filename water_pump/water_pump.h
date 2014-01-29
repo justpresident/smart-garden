@@ -100,7 +100,7 @@ class Pump {
     Pump(int pin) {
       _pin = pin;
       pinMode(_pin, OUTPUT);
-      
+      //digitalWrite(_pin, HIGH);
       _last_watering_time = 0;
       _last_watering_amount = 0;
       interval_days = 0;

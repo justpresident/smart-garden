@@ -5,7 +5,7 @@
 #include "water_pump.h"
 
 // HARDWARE
-#define PUMP_PIN 13
+#define PUMP_PIN 9
 #define BTN1_PIN 7
 #define BTN2_PIN 8
 
